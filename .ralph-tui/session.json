@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "sessionId": "50d15d3a-442b-4096-9965-c88f68247d2c",
+  "sessionId": "f3d5791a-dd00-47b8-990d-4dec1ee334ea",
   "status": "running",
-  "startedAt": "2026-04-09T21:48:00.737Z",
-  "updatedAt": "2026-04-09T21:51:37.863Z",
-  "currentIteration": 1,
+  "startedAt": "2026-04-09T21:54:22.653Z",
+  "updatedAt": "2026-04-09T21:55:47.365Z",
+  "currentIteration": 0,
   "maxIterations": 20,
-  "tasksCompleted": 1,
+  "tasksCompleted": 0,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -18,12 +18,12 @@
         "id": "US-001",
         "title": "Project scaffolding and shared types",
         "status": "completed",
-        "completedInSession": true
+        "completedInSession": false
       },
       {
         "id": "US-002",
         "title": "Config parsing module",
-        "status": "open",
+        "status": "completed",
         "completedInSession": false
       },
       {
@@ -58,18 +58,7 @@
       }
     ]
   },
-  "iterations": [
-    {
-      "iteration": 1,
-      "status": "completed",
-      "taskId": "US-001",
-      "taskTitle": "Project scaffolding and shared types",
-      "taskCompleted": true,
-      "durationMs": 44545,
-      "startedAt": "2026-04-09T21:48:21.017Z",
-      "endedAt": "2026-04-09T21:49:05.562Z"
-    }
-  ],
+  "iterations": [],
   "skippedTaskIds": [],
   "cwd": "/Users/victor/codespace/opencode-skills-notifier",
   "activeTaskIds": [],

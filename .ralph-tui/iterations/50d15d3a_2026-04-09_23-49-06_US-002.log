@@ -1,0 +1,165 @@
+# Iteration 2 Log
+
+## Metadata
+
+- **Task ID**: US-002
+- **Task Title**: Config parsing module
+- **Description**: As a developer, I need a module that reads the plugin's configuration section from ~/.config/opencode/opencode.json with safe defaults so the plugin works even if no config exists.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-04-09T21:49:06.702Z
+- **Ended At**: 2026-04-09T21:51:37.862Z
+- **Duration**: 2m 31s
+- **Input Tokens**: 80
+- **Output Tokens**: 9577
+- **Total Tokens**: 9657
+- **Agent**: claude
+- **Model**: claude-sonnet-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95m/Users/victor/codespace/opencode-skills-notifier/.ralph-tui/progress.md[0m
+[94m[Glob][0m [95m/Users/victor/codespace/opencode-skills-notifier[0m pattern: [96msrc/**/*[0m
+[94m[Read][0m [95m/Users/victor/codespace/opencode-skills-notifier/src/types.ts[0m
+[94m[Read][0m [95m/Users/victor/codespace/opencode-skills-notifier/package.json[0m
+[94m[Read][0m [95m/Users/victor/codespace/opencode-skills-notifier/tsconfig.json[0m
+Now I'll create the config module and tests:
+[94m[Write][0m [95m/Users/victor/codespace/opencode-skills-notifier/src/config.ts[0m "import { readFile } from "fs/promises";
+import { homedir } from "os";
+import { join } from "path";
+import type { PluginConfig } from "./types.js";
+
+const CONFIG_FILE = join(homedir(), ".config", "open... (1696 chars)"
+Now add a test script to package.json and create tests:
+[94m[Edit][0m [95m/Users/victor/codespace/opencode-skills-notifier/package.json[0m edit: "  "scripts": {
+    "build": "tsc",
+    "typecheck"..." → "  "scripts": {
+    "build": "tsc",
+    "typecheck"..."
+[94m[Write][0m [95m/Users/victor/codespace/opencode-skills-notifier/src/config.test.ts[0m "import { describe, it, expect, mock, beforeEach, afterEach } from "bun:test";
+
+// We'll test readPluginConfig by mocking the fs/promises module
+// Bun supports mock.module for this purpose
+
+describe("... (2239 chars)"
+[94m[Bash][0m Run typecheck $ bun run typecheck 2>&1
+
+[91m[Error: Exit code 2
+$ tsc --noEmit
+src/config.test.ts(1,67): error TS2307: Cannot find module 'bun:test' or its corresponding type declarations.
+src/config.test.ts(21,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/config.test.ts(31,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/config.test.ts(46,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/config.test.ts(67,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/config.ts(1,26): error TS2307: Cannot find module 'fs/promises' or its corresponding type declarations.
+src/config.ts(2,25): error TS2307: Cannot find module 'os' or its corresponding type declarations.
+src/config.ts(3,22): error TS2307: Cannot find module 'path' or its corresponding type declarations.
+[rerun: b1]][0m
+I need to fix the TypeScript setup for Bun. Let me add `bun-types` and exclude test files from the main tsconfig:
+[94m[Bash][0m Add bun-types devDependency $ bun add -d bun-types 2>&1
+[94m[Edit][0m [95m/Users/victor/codespace/opencode-skills-notifier/tsconfig.json[0m edit: "  "include": ["src"]
+}" → "  "include": ["src"],
+  "exclude": ["src/**/*.test..."
+Now fix the Node.js module resolution by adding `@types/node`:
+[94m[Bash][0m Add @types/node devDependency $ bun add -d @types/node 2>&1
+[94m[Bash][0m Run typecheck $ bun run typecheck 2>&1
+Typecheck passes. Now run the tests:
+[94m[Bash][0m Run tests $ bun test 2>&1
+All 4 tests pass. Now run the code review:
+[94m[Skill][0m
+[94m[Bash][0m Gather git context for code review $ git log --oneline origin/main..HEAD 2>&1
+[94m[Read][0m [95m/Users/victor/codespace/opencode-skills-notifier/src/config.ts[0m
+[94m[Read][0m [95m/Users/victor/codespace/opencode-skills-notifier/src/config.test.ts[0m
+## 🛡️ Code Review — `src/config.ts` (US-002)
+
+### 🏗️ Architectural & Systemic Findings
+
+- **Hardcoded path, no override mechanism**: `CONFIG_FILE` is computed once at module load time from `homedir()`. There is no env-var override or injectable path, making this untestable without mocking (which is what the tests do). The tests work around this, but the architecture is fragile — in CI or sandboxed environments, `homedir()` may resolve to an unexpected path.
+- **`DEFAULTS.repositories` is a shared reference**: The spread `{ ...DEFAULTS }` is shallow. `repositories: []` is the same array reference in `DEFAULTS`. If any caller mutates the returned array (e.g. `.push()`), subsequent calls to `readPluginConfig()` would return a polluted default. However, since it returns `{ ...DEFAULTS }` and not `DEFAULTS` directly, the array itself isn't re-wrapped. **This is a real shared-ref bug.**
+
+---
+
+### 🔴 HIGH (Security, Data Loss, Outages)
+
+None.
+
+---
+
+### 🟡 MEDIUM (Bugs, Logic Flaws)
+
+1. **`src/config.ts`** — `DEFAULTS.repositories` is a shared array reference, not deep-cloned on each return.
+   ```typescript
+   const DEFAULTS: PluginConfig = {
+     ...
+     repositories: [],
+   ```
+   _Impact:_ Any caller that mutates the `repositories` array on a returned config will silently mutate the module-level `DEFAULTS` object. All subsequent calls to `readPluginConfig()` after mutation will return a `repositories` default containing the leaked values. Callers in later stories that write to `config.repositories` would hit this.
+
+   _Fix:_ Deep-clone on return: `return { ...DEFAULTS, repositories: [...DEFAULTS.repositories] }` — or define a `makeDefaults()` factory function.
+
+2. **`src/config.ts`** — `checkIntervalMinutes` accepts negative numbers and zero without validation.
+   ```typescript
+   typeof s["checkIntervalMinutes"] === "number"
+     ? s["checkIntervalMinutes"]
+   ```
+   _Impact:_ A value of `0` or `-1` would be accepted as valid. If downstream code uses this as a polling interval, it could trigger an infinite tight-loop or negative timer, causing a hang/crash. The domain contract is "minutes between checks" — zero or negative is nonsensical.
+
+   _Fix:_ Add `&& s["checkIntervalMinutes"] > 0` to the guard.
+
+---
+
+### 🔵 LOW (Maintainability, Tech Debt)
+
+3. **`src/config.test.ts`** — `beforeEach`/`afterEach` are imported but never used.
+   ```typescript
+   import { describe, it, expect, mock, beforeEach, afterEach } from "bun:test";
+   ```
+   _Impact:_ Dead import; minor noise. With `mock.module` persisting across tests in the same file, test isolation relies on import ordering and Bun's module cache behavior — not explicitly reset between cases. If Bun caches the module after the first `import("./config.ts")`, subsequent mock overrides may not take effect as expected.
+
+4. **`src/config.ts`** — `s["repositories"]` casts the array as `string[]` before filtering, which defeats the filter's purpose.
+   ```typescript
+   (s["repositories"] as string[]).filter((r) => typeof r === "string")
+   ```
+   The cast tells TypeScript it's already `string[]`, making the `typeof r === "string"` filter redundant from the type system's perspective. This is fine at runtime but misleading — the cast should be `unknown[]` and the filter is what produces `string[]`.
+
+---
+
+**Summary:** 0 Architectural (noted), 0 High, 2 Medium, 2 Low findings.
+
+**Recommendation:** Conditional Pass — fix the two Medium issues before merging. The shared array ref (item 1) is the most important, as it can cause silent state pollution in future stories. The `> 0` guard (item 2) is a cheap one-liner that prevents nonsensical config values from propagating downstream.
+
+---
+
+Now fixing the two Medium issues:
+[94m[Edit][0m [95m/Users/victor/codespace/opencode-skills-notifier/src/config.ts[0m edit: "export async function readPluginConfig(): Promise<..." → "function defaults(): PluginConfig {
+  return { ......"
+Also fix the dead import in tests:
+[94m[Edit][0m [95m/Users/victor/codespace/opencode-skills-notifier/src/config.test.ts[0m edit: "import { describe, it, expect, mock, beforeEach, a..." → "import { describe, it, expect, mock } from "bun:te..."
+[94m[Bash][0m Run typecheck and tests $ bun run typecheck 2>&1 && bun test 2>&1
+Both pass. Now update progress.md:
+[94m[Read][0m [95m/Users/victor/codespace/opencode-skills-notifier/.ralph-tui/progress.md[0m
+[94m[Edit][0m [95m/Users/victor/codespace/opencode-skills-notifier/.ralph-tui/progress.md[0m edit: "## Codebase Patterns (Study These First)
+
+*Add reu..." → "## Codebase Patterns (Study These First)
+
+- **Conf..."
+[94m[Edit][0m [95m/Users/victor/codespace/opencode-skills-notifier/.ralph-tui/progress.md[0m edit: "---
+" → "---
+
+## 2026-04-09 - US-002
+- Implemented `src/con..."
+
+[91m[Error: <tool_use_error>Found 2 matches of the string to replace, but replace_all is false. To replace all occurrences, set replace_all to true. To replace only one occurrence, please provide more context to uniquely identify the instance.
+String: ---
+</tool_use_error>][0m
+[94m[Edit][0m [95m/Users/victor/codespace/opencode-skills-notifier/.ralph-tui/progress.md[0m edit: "  - `@opencode-ai/plugin` resolves to v1.4.2 from ..." → "  - `@opencode-ai/plugin` resolves to v1.4.2 from ..."
+
+[91m[Error: <tool_use_error>String to replace not found in file.
+String:   - `@opencode-ai/plugin` resolves to v1.4.2 from npm
+  - tsconfig uses `"moduleResolution": "bundler"` (not "node16") with ESNext target/module — required for Bun compatibility
+  - `bun run build` (tsc) and `bun run typecheck` both pass with only types.ts in src/
+---</tool_use_error>][0m
+[94m[Read][0m [95m/Users/victor/codespace/opencode-skills-notifier/.ralph-tui/progress.md[0m
+[94m[Edit][0m [95m/Users/victor/codespace/opencode-skills-notifier/.ralph-tui/progress.md[0m edit: "  - `bun run build` (tsc) and `bun run typecheck` ..." → "  - `bun run build` (tsc) and `bun run typecheck` ..."
+<promise>COMPLETE</promise>
