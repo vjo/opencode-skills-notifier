@@ -3,10 +3,10 @@
   "sessionId": "50d15d3a-442b-4096-9965-c88f68247d2c",
   "status": "running",
   "startedAt": "2026-04-09T21:48:00.737Z",
-  "updatedAt": "2026-04-09T21:49:05.563Z",
-  "currentIteration": 0,
+  "updatedAt": "2026-04-09T21:51:37.863Z",
+  "currentIteration": 1,
   "maxIterations": 20,
-  "tasksCompleted": 0,
+  "tasksCompleted": 1,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -17,8 +17,8 @@
       {
         "id": "US-001",
         "title": "Project scaffolding and shared types",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-002",
@@ -58,7 +58,18 @@
       }
     ]
   },
-  "iterations": [],
+  "iterations": [
+    {
+      "iteration": 1,
+      "status": "completed",
+      "taskId": "US-001",
+      "taskTitle": "Project scaffolding and shared types",
+      "taskCompleted": true,
+      "durationMs": 44545,
+      "startedAt": "2026-04-09T21:48:21.017Z",
+      "endedAt": "2026-04-09T21:49:05.562Z"
+    }
+  ],
   "skippedTaskIds": [],
   "cwd": "/Users/victor/codespace/opencode-skills-notifier",
   "activeTaskIds": [],
