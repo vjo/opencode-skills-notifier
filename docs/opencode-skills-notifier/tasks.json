@@ -97,8 +97,9 @@
       "dependsOn": [
         "US-001"
       ],
-      "passes": false,
-      "notes": "src/discovery.ts | skills dirs: ~/.agents/skills/ (global), .agents/skills/ (project) — confirmed from actual .agents/skills/copywriting/ structure in this repo | read .git/config under each skill subdir for remote URL"
+      "passes": true,
+      "notes": "src/discovery.ts | skills dirs: ~/.agents/skills/ (global), .agents/skills/ (project) — confirmed from actual .agents/skills/copywriting/ structure in this repo | read .git/config under each skill subdir for remote URL",
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-005",
@@ -188,6 +189,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-04-09T21:55:47.365Z"
+    "updatedAt": "2026-04-09T22:01:25.923Z"
   }
 }

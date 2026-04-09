@@ -14,6 +14,7 @@ describe("readCache", () => {
       rename: () => Promise.resolve(),
       mkdir: () => Promise.resolve(),
       unlink: () => Promise.resolve(),
+      readdir: () => Promise.resolve([]),
     }));
     const { readCache } = await import("./cache.ts");
     expect(await readCache()).toEqual(EMPTY_DEFAULT);
@@ -25,6 +26,7 @@ describe("readCache", () => {
       writeFile: () => Promise.resolve(),
       rename: () => Promise.resolve(),
       mkdir: () => Promise.resolve(),
+      readdir: () => Promise.resolve([]),
     }));
     const { readCache } = await import("./cache.ts");
     expect(await readCache()).toEqual(EMPTY_DEFAULT);
@@ -47,6 +49,7 @@ describe("readCache", () => {
         return Promise.resolve();
       },
       mkdir: () => Promise.resolve(),
+      readdir: () => Promise.resolve([]),
     }));
     const { readCache, writeCache } = await import("./cache.ts");
     const cache = {
