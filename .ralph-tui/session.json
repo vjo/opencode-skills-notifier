@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "sessionId": "50d15d3a-442b-4096-9965-c88f68247d2c",
+  "status": "running",
+  "startedAt": "2026-04-09T21:48:00.737Z",
+  "updatedAt": "2026-04-09T21:49:05.563Z",
+  "currentIteration": 0,
+  "maxIterations": 20,
+  "tasksCompleted": 0,
+  "isPaused": false,
+  "agentPlugin": "claude",
+  "trackerState": {
+    "plugin": "json",
+    "prdPath": "docs/opencode-skills-notifier/tasks.json",
+    "totalTasks": 7,
+    "tasks": [
+      {
+        "id": "US-001",
+        "title": "Project scaffolding and shared types",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-002",
+        "title": "Config parsing module",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-003",
+        "title": "Cache read/write module",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-004",
+        "title": "Local skills detection and implicit repo discovery",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-005",
+        "title": "Git checker — remote hash check and shallow clone",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-006",
+        "title": "Plugin entry point",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-007",
+        "title": "Smoke test: install and validate in OpenCode",
+        "status": "open",
+        "completedInSession": false
+      }
+    ]
+  },
+  "iterations": [],
+  "skippedTaskIds": [],
+  "cwd": "/Users/victor/codespace/opencode-skills-notifier",
+  "activeTaskIds": [],
+  "subagentPanelVisible": false
+}

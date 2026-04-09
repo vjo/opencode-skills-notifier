@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(curl:*)",
+      "Bash(npx agent-browser:*)",
+      "Bash(find /Users/victor/codespace/go-links -maxdepth 2 -type f ! -path ./.git/* ! -path ./.ralph-tui/* ! -path ./.agents/* ! -path ./.claude/*)",
+      "Bash(agent-browser:*)",
+      "Bash(rtk proxy:*)",
+      "Bash(docker compose:*)",
+      "Bash(bun run:*)",
+      "Bash(bun test:*)",
+      "Bash(bunx tsc:*)",
+      "Skill(agent-browser)"
+    ]
+  }
+}

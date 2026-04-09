@@ -1,0 +1,191 @@
+{
+  "name": "opencode-skills-notifier",
+  "description": "OpenCode plugin that detects new skills in configured remote Git repositories and shows a toast notification on launch so team members never miss new shared tooling.",
+  "branchName": "ralph/skills-notifier-plugin",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Project scaffolding and shared types",
+      "description": "As a developer, I need the TypeScript project scaffold (package.json, tsconfig.json) and shared type definitions so the plugin can be built and published to npm.",
+      "acceptanceCriteria": [
+        "package.json exists with name 'opencode-skills-notifier', type 'module', main 'dist/index.js'",
+        "package.json has @opencode-ai/plugin as peerDependency and devDependency",
+        "tsconfig.json targets ESNext with moduleResolution bundler and outputs to dist/",
+        "src/types.ts exports Cache, PluginConfig interfaces matching the plan data model",
+        "bun run build (tsc) completes without errors",
+        "bun run typecheck passes"
+      ],
+      "priority": 1,
+      "estimate": "S",
+      "dependsOn": [],
+      "passes": true,
+      "notes": "Greenfield project root — create package.json, tsconfig.json, src/types.ts | Plugin type from @opencode-ai/plugin",
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-002",
+      "title": "Config parsing module",
+      "description": "As a developer, I need a module that reads the plugin's configuration section from ~/.config/opencode/opencode.json with safe defaults so the plugin works even if no config exists.",
+      "acceptanceCriteria": [
+        "src/config.ts exports readPluginConfig(): Promise<PluginConfig>",
+        "Returns defaults { enabled: true, checkIntervalMinutes: 60, repositories: [], skillsScope: 'both' } when config file is missing",
+        "Returns defaults when opencode-skills-notifier section is absent from config",
+        "Correctly parses enabled, checkIntervalMinutes, repositories, skillsScope fields when present",
+        "Unit test: missing config file returns defaults",
+        "Unit test: partial config merges with defaults",
+        "Unit test: full config parses all fields correctly",
+        "/code-review passes, critical/important issues fixed",
+        "bun run typecheck passes",
+        "bun test passes"
+      ],
+      "estimate": "S",
+      "dependsOn": [
+        "US-001"
+      ],
+      "passes": false,
+      "notes": "src/config.ts | reads from ~/.config/opencode/opencode.json, section key 'opencode-skills-notifier'"
+    },
+    {
+      "id": "US-003",
+      "title": "Cache read/write module",
+      "description": "As a developer, I need a module to read and write the cache file that tracks last-checked timestamps, remote commit hashes per repo, and which skills have already been shown in a toast.",
+      "acceptanceCriteria": [
+        "src/cache.ts exports readCache(): Promise<Cache> and writeCache(cache: Cache): Promise<void>",
+        "readCache returns { last_checked_at: '1970-01-01T00:00:00.000Z', repos: {}, notified_skills: [] } when file is missing",
+        "readCache returns { last_checked_at: '1970-01-01T00:00:00.000Z', repos: {}, notified_skills: [] } when file is malformed JSON",
+        "writeCache writes valid JSON to ~/.config/opencode/skills-notifier-cache.json",
+        "Round-trip: write then read returns identical Cache object",
+        "Unit test: missing cache file returns empty default",
+        "Unit test: malformed JSON returns empty default",
+        "Unit test: round-trip write then read",
+        "/code-review passes, critical/important issues fixed",
+        "bun run typecheck passes",
+        "bun test passes"
+      ],
+      "estimate": "S",
+      "dependsOn": [
+        "US-001"
+      ],
+      "passes": false,
+      "notes": "src/cache.ts | cache path: ~/.config/opencode/skills-notifier-cache.json"
+    },
+    {
+      "id": "US-004",
+      "title": "Local skills detection and implicit repo discovery",
+      "description": "As a developer, I need functions to detect which skills are already installed locally and to discover skill repo URLs from the workspace's .agents/ directory so repos don't need to be configured manually.",
+      "acceptanceCriteria": [
+        "src/discovery.ts exports getLocalSkills(directory, scope): Promise<Set<string>>",
+        "getLocalSkills with scope='global' scans ~/.agents/skills/ and returns folder names",
+        "getLocalSkills with scope='project' scans <directory>/.agents/skills/ and returns folder names",
+        "getLocalSkills with scope='both' returns union of global and project skills",
+        "getLocalSkills returns empty Set when directories don't exist (no throw)",
+        "src/discovery.ts exports discoverLocalRepos(directory): Promise<string[]>",
+        "discoverLocalRepos reads .git/config from each subdir of <directory>/.agents/skills/ and extracts [remote \"origin\"] url",
+        "discoverLocalRepos returns [] when .agents/skills/ doesn't exist",
+        "discoverLocalRepos deduplicates URLs",
+        "Unit test: getLocalSkills returns correct skill names from mocked directory",
+        "Unit test: getLocalSkills returns empty set when dir missing",
+        "Unit test: discoverLocalRepos extracts git remote URLs correctly",
+        "Unit test: discoverLocalRepos deduplicates identical URLs",
+        "/code-review passes, critical/important issues fixed",
+        "bun run typecheck passes",
+        "bun test passes"
+      ],
+      "estimate": "M",
+      "dependsOn": [
+        "US-001"
+      ],
+      "passes": false,
+      "notes": "src/discovery.ts | skills dirs: ~/.agents/skills/ (global), .agents/skills/ (project) — confirmed from actual .agents/skills/copywriting/ structure in this repo | read .git/config under each skill subdir for remote URL"
+    },
+    {
+      "id": "US-005",
+      "title": "Git checker — remote hash check and shallow clone",
+      "description": "As a developer, I need functions to check a remote repo's HEAD hash via git ls-remote and, when the hash has changed, perform a shallow clone to discover skill folder names.",
+      "acceptanceCriteria": [
+        "src/checker.ts exports checkRepo(repoUrl, cache): Promise<string[]>",
+        "checkRepo returns cached known_skills without cloning when HEAD hash is unchanged",
+        "checkRepo performs shallow clone and returns top-level folder names when hash has changed",
+        "checkRepo updates cache.repos[url] with new hash and skills list after a clone",
+        "checkRepo cleans up temp clone directory in all cases (success and failure)",
+        "checkRepo returns [] and does not throw when git ls-remote fails (silent failure)",
+        "checkRepo returns [] and does not throw when git clone fails (silent failure)",
+        "GIT_TERMINAL_PROMPT=0 is set on all git subprocess calls",
+        "src/checker.ts exports spawnCheck(client, directory): Promise<void>",
+        "spawnCheck returns immediately when config.enabled is false",
+        "spawnCheck returns immediately when elapsed time < checkIntervalMinutes",
+        "spawnCheck merges configRepos and discoveredRepos and deduplicates",
+        "spawnCheck evicts notified_skills that are no longer installed locally before comparing",
+        "spawnCheck adds newly found skills to cache.notified_skills",
+        "spawnCheck calls client.tui.showToast when new skills are found",
+        "spawnCheck does NOT call showToast when no new skills found",
+        "Unit test: checkRepo returns cached skills when hash unchanged",
+        "Unit test: checkRepo returns folder names after hash change (mocked git calls)",
+        "Unit test: checkRepo handles git ls-remote failure silently",
+        "Unit test: spawnCheck skips when disabled",
+        "Unit test: spawnCheck skips when rate-limited",
+        "Unit test: spawnCheck evicts uninstalled skills from notified_skills",
+        "/code-review passes, critical/important issues fixed",
+        "bun run typecheck passes",
+        "bun test passes"
+      ],
+      "priority": 1,
+      "estimate": "L",
+      "dependsOn": [
+        "US-002",
+        "US-003",
+        "US-004"
+      ],
+      "passes": false,
+      "notes": "src/checker.ts | uses Bun's $ shell helper for git subprocess calls | GIT_TERMINAL_PROMPT=0 env var required | shallow clone: git clone --depth 1 --quiet | ls-remote timeout: 10s, clone timeout: 30s"
+    },
+    {
+      "id": "US-006",
+      "title": "Plugin entry point",
+      "description": "As an OpenCode user, I need the plugin export so OpenCode can load it as an npm plugin on session.created.",
+      "acceptanceCriteria": [
+        "src/index.ts exports a named SkillsNotifierPlugin typed as Plugin from @opencode-ai/plugin",
+        "Plugin hooks session.created and calls spawnCheck(client, directory) as fire-and-forget",
+        "session.created hook returns synchronously — it does NOT await spawnCheck",
+        "Errors from spawnCheck are swallowed and do not propagate to OpenCode",
+        "bun run build produces dist/index.js that can be required as an ES module",
+        "Unit test: session.created hook does not await (returns before spawnCheck resolves)",
+        "Unit test: errors from spawnCheck do not cause the hook to throw",
+        "/code-review passes, critical/important issues fixed",
+        "bun run typecheck passes",
+        "bun test passes"
+      ],
+      "estimate": "S",
+      "dependsOn": [
+        "US-005"
+      ],
+      "passes": false,
+      "notes": "src/index.ts | export SkillsNotifierPlugin | import type { Plugin } from '@opencode-ai/plugin' | spawnCheck().catch(() => {}) pattern"
+    },
+    {
+      "id": "US-007",
+      "title": "Smoke test: install and validate in OpenCode",
+      "description": "As a developer, I need to verify the plugin loads correctly in a real OpenCode session and shows the toast notification when a test repo has skills not installed locally.",
+      "acceptanceCriteria": [
+        "bun run build completes without errors",
+        "Plugin installed as local file plugin by symlinking or copying dist/index.js to ~/.config/opencode/plugins/opencode-skills-notifier.js",
+        "opencode.json configured with at least one test repository URL under opencode-skills-notifier.repositories",
+        "Launch opencode — no startup errors or crashes related to the plugin",
+        "Delete or rename ~/.config/opencode/skills-notifier-cache.json to force a fresh check",
+        "Relaunch opencode — toast notification appears within a few seconds listing new skills",
+        "Toast message includes skill name(s) and 'npx skills add <repo-url>' install command",
+        "Relaunch opencode again without installing skills — toast reappears (persists until installed)",
+        "Install a skill with npx skills add, then relaunch — toast no longer lists that skill"
+      ],
+      "estimate": "S",
+      "dependsOn": [
+        "US-006"
+      ],
+      "passes": false,
+      "notes": "Manual verification — no automated test framework can replicate a real OpenCode TUI session | also verify newline rendering in toast: if \\n is not rendered, update message format in checker.ts to a single-line condensed format"
+    }
+  ],
+  "metadata": {
+    "updatedAt": "2026-04-09T21:49:05.563Z"
+  }
+}
