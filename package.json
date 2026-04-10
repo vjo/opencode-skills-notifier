@@ -1,6 +1,6 @@
 {
   "name": "opencode-skills-notifier",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "OpenCode plugin that watches git repositories for new agent skills and notifies users when new skills are available to install",
   "type": "module",
   "main": "dist/index.js",
@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "dev": "tsc --watch",
     "test": "for f in src/*.test.ts; do bun test \"$f\" || exit 1; done",
+    "prepare": "bun run build",
     "prepublishOnly": "bun run build"
   },
   "keywords": [

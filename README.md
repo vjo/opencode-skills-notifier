@@ -20,33 +20,36 @@ The check runs fire-and-forget so it never blocks session startup.
 ## Requirements
 
 - [OpenCode](https://opencode.ai) with plugin support
-- [Bun](https://bun.sh) 1.0+
 - `git` available in `PATH`
 
 ## Installation
 
-### 1. Clone and build
-
-```bash
-git clone https://github.com/your-org/opencode-skills-notifier
-cd opencode-skills-notifier
-bun install
-bun run build     # compiles src/ → dist/
-```
-
-### 2. Register the plugin in OpenCode
-
-Edit `~/.config/opencode/opencode.json` (create it if it doesn't exist):
+Add the plugin to `~/.config/opencode/config.json` (create it if it doesn't exist):
 
 ```json
 {
-  "plugins": [
-    "/absolute/path/to/opencode-skills-notifier/dist/index.js"
+  "plugin": ["opencode-skills-notifier@git+https://github.com/vjo/opencode-skills-notifier.git"]
+}
+```
+
+To pass configuration options alongside the plugin:
+
+```json
+{
+  "plugin": [
+    [
+      "opencode-skills-notifier@git+https://github.com/vjo/opencode-skills-notifier.git",
+      {
+        "enabled": true,
+        "repositories": ["https://github.com/your-org/your-skills-repo"],
+        "skillsScope": "both"
+      }
+    ]
   ]
 }
 ```
 
-That's it. The plugin activates automatically the next time you open an OpenCode session.
+OpenCode will automatically fetch and install the package on next startup.
 
 ## Configuration
 
