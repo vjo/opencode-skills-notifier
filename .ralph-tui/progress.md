@@ -16,6 +16,15 @@ Source files are inconsistent: `cache.ts` and `config.ts` import `"fs/promises"`
 
 ---
 
+## 2026-04-10 - US-006
+- **What was implemented**: `src/index.ts` — exports `SkillsNotifierPlugin` typed as `Plugin` from `@opencode-ai/plugin`. The plugin registers an `event` hook that calls `spawnCheck(client, directory).catch(() => {})` as fire-and-forget when `event.type === "session.created"`. Also created `src/index.test.ts` with three tests.
+- **Files changed**: `src/index.ts` (new), `src/index.test.ts` (new). Build produced `dist/index.js` and `dist/index.d.ts`.
+- **Learnings:**
+  - `Plugin` type is `(input: PluginInput, options?: PluginOptions) => Promise<Hooks>`. To hook `session.created`, use the `event` hook in the returned `Hooks` object and check `event.type === "session.created"`.
+  - Fire-and-forget pattern: `spawnCheck(client, directory).catch(() => {})` — the `.catch` is required to suppress unhandled rejections; the hook itself does not `await` the call, so it returns synchronously from the async event handler immediately.
+  - Bun's `mock.module` caches modules per-process; dynamic `import("./index.ts")` inside tests picks up the mocked `checker.ts` because it uses the module registry.
+---
+
 ## 2026-04-10 - US-005
 - **What was implemented**: `src/checker.ts` (already existed from a prior iteration) and `src/checker.test.ts`. Both were complete and correct.
 - **Files changed**: None — implementation was already present. Updated `.ralph-tui/progress.md` with learnings.
