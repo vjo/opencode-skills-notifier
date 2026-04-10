@@ -1,14 +1,36 @@
 {
   "name": "opencode-skills-notifier",
   "version": "0.1.0",
+  "description": "OpenCode plugin that watches git repositories for new agent skills and notifies users when new skills are available to install",
   "type": "module",
   "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "dev": "tsc --watch",
-    "test": "for f in src/*.test.ts; do bun test \"$f\" || exit 1; done"
+    "test": "for f in src/*.test.ts; do bun test \"$f\" || exit 1; done",
+    "prepublishOnly": "npm run build"
   },
+  "keywords": [
+    "opencode",
+    "plugin",
+    "skills",
+    "notifications",
+    "agent"
+  ],
+  "author": "Victor Jolissaint",
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vjo/opencode-skills-notifier.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vjo/opencode-skills-notifier/issues"
+  },
+  "homepage": "https://github.com/vjo/opencode-skills-notifier#readme",
   "peerDependencies": {
     "@opencode-ai/plugin": "*"
   },
