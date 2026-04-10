@@ -11,7 +11,8 @@
       "Bash(bun run:*)",
       "Bash(bun test:*)",
       "Bash(bunx tsc:*)",
-      "Skill(agent-browser)"
+      "Skill(agent-browser)",
+      "WebSearch"
     ]
   }
 }
