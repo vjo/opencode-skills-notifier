@@ -158,4 +158,4 @@ rm -f ~/.config/opencode/skills-notifier-cache.json
 
 ## License
 
-MIT
+GPL-3.0
