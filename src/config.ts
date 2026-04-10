@@ -1,10 +1,5 @@
-import { readFile } from "fs/promises";
-import { homedir } from "os";
-import { join } from "path";
+import type { PluginOptions } from "@opencode-ai/plugin";
 import type { PluginConfig } from "./types.js";
-
-const CONFIG_FILE = join(homedir(), ".config", "opencode", "opencode.json");
-const SECTION_KEY = "opencode-skills-notifier";
 
 const DEFAULTS: PluginConfig = {
   enabled: true,
@@ -13,46 +8,15 @@ const DEFAULTS: PluginConfig = {
   skillsScope: "both",
 };
 
-function defaults(): PluginConfig {
-  return { ...DEFAULTS, repositories: [...DEFAULTS.repositories] };
-}
-
-export async function readPluginConfig(): Promise<PluginConfig> {
-  let raw: string;
-  try {
-    raw = await readFile(CONFIG_FILE, "utf-8");
-  } catch {
-    return defaults();
-  }
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return defaults();
-  }
-
-  if (
-    typeof parsed !== "object" ||
-    parsed === null ||
-    !(SECTION_KEY in parsed)
-  ) {
-    return defaults();
-  }
-
-  const section = (parsed as Record<string, unknown>)[SECTION_KEY];
-  if (typeof section !== "object" || section === null) {
-    return defaults();
-  }
-
-  const s = section as Record<string, unknown>;
+export function readPluginConfig(options?: PluginOptions): PluginConfig {
+  const s = options ?? {};
 
   const enabled =
     typeof s["enabled"] === "boolean" ? s["enabled"] : DEFAULTS.enabled;
 
   const checkIntervalMinutes =
     typeof s["checkIntervalMinutes"] === "number" &&
-    s["checkIntervalMinutes"] > 0
+    s["checkIntervalMinutes"] >= 0
       ? s["checkIntervalMinutes"]
       : DEFAULTS.checkIntervalMinutes;
 

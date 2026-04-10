@@ -52,8 +52,8 @@ export async function checkRepo(repoUrl, cache) {
         await rm(tmpDir, { recursive: true, force: true }).catch(() => undefined);
     }
 }
-export async function spawnCheck(client, directory) {
-    const config = await readPluginConfig();
+export async function spawnCheck(client, directory, options) {
+    const config = readPluginConfig(options);
     if (!config.enabled)
         return;
     const cache = await readCache();

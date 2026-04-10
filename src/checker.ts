@@ -7,6 +7,7 @@ import { readPluginConfig } from "./config.js";
 import { readCache, writeCache } from "./cache.js";
 import { discoverLocalRepos, getLocalSkills } from "./discovery.js";
 import type { createOpencodeClient } from "@opencode-ai/sdk";
+import type { PluginOptions } from "@opencode-ai/plugin";
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
@@ -68,9 +69,10 @@ export async function checkRepo(repoUrl: string, cache: Cache): Promise<string[]
 
 export async function spawnCheck(
   client: ReturnType<typeof createOpencodeClient>,
-  directory: string
+  directory: string,
+  options?: PluginOptions
 ): Promise<void> {
-  const config = await readPluginConfig();
+  const config = readPluginConfig(options);
   if (!config.enabled) return;
 
   const cache = await readCache();
