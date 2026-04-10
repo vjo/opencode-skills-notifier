@@ -3,10 +3,10 @@
   "sessionId": "37bfaafd-6b43-475c-b522-f9798aa9e59c",
   "status": "running",
   "startedAt": "2026-04-10T05:40:54.567Z",
-  "updatedAt": "2026-04-10T05:45:34.954Z",
-  "currentIteration": 1,
+  "updatedAt": "2026-04-10T05:48:25.588Z",
+  "currentIteration": 2,
   "maxIterations": 20,
-  "tasksCompleted": 1,
+  "tasksCompleted": 2,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -47,8 +47,8 @@
       {
         "id": "US-006",
         "title": "Plugin entry point",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-007",
@@ -68,6 +68,16 @@
       "durationMs": 171910,
       "startedAt": "2026-04-10T05:40:58.643Z",
       "endedAt": "2026-04-10T05:43:50.553Z"
+    },
+    {
+      "iteration": 2,
+      "status": "completed",
+      "taskId": "US-006",
+      "taskTitle": "Plugin entry point",
+      "taskCompleted": true,
+      "durationMs": 103286,
+      "startedAt": "2026-04-10T05:43:51.667Z",
+      "endedAt": "2026-04-10T05:45:34.953Z"
     }
   ],
   "skippedTaskIds": [],

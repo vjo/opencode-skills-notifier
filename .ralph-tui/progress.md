@@ -16,6 +16,16 @@ Source files are inconsistent: `cache.ts` and `config.ts` import `"fs/promises"`
 
 ---
 
+## 2026-04-10 - US-007
+- **What was implemented**: Smoke-test setup — updated `src/checker.ts` toast message format to include `npx skills add <repo-url>` install command (single-line condensed, newline-safe). Created `~/.config/opencode/plugins/opencode-skills-notifier.js` as a symlink to `dist/index.js`. Created `~/.config/opencode/opencode.json` with `checkIntervalMinutes: 1` and `https://github.com/anthropics/claude-code-skills` as the test repository.
+- **Files changed**: `src/checker.ts` (toast message refactored to group skills by repo and emit per-repo install commands), `dist/checker.js` (rebuilt), `~/.config/opencode/plugins/opencode-skills-notifier.js` (new symlink), `~/.config/opencode/opencode.json` (new config).
+- **Learnings:**
+  - Use `\u2014` (em dash `—`) as separator in single-line toast messages; avoids `\n` rendering uncertainty in TUI toasts.
+  - Grouping `newSkills` by repo (`newByRepo`) lets the message emit per-repo `npx skills add <url>` install commands — important when skills span multiple repos.
+  - `checkIntervalMinutes: 1` in the test config enables rapid re-checking during manual smoke tests; change back to 60 for production use.
+  - The `~/.config/opencode/plugins/` directory must be created manually — OpenCode does not create it on first run.
+---
+
 ## 2026-04-10 - US-006
 - **What was implemented**: `src/index.ts` — exports `SkillsNotifierPlugin` typed as `Plugin` from `@opencode-ai/plugin`. The plugin registers an `event` hook that calls `spawnCheck(client, directory).catch(() => {})` as fire-and-forget when `event.type === "session.created"`. Also created `src/index.test.ts` with three tests.
 - **Files changed**: `src/index.ts` (new), `src/index.test.ts` (new). Build produced `dist/index.js` and `dist/index.d.ts`.

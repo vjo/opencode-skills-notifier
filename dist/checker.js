@@ -68,24 +68,26 @@ export async function spawnCheck(client, directory) {
     // Evict notified_skills that are no longer locally installed
     const localSkills = await getLocalSkills(directory, config.skillsScope);
     cache.notified_skills = cache.notified_skills.filter((s) => localSkills.has(s));
-    // Check each repo and collect newly discovered skills
-    const newSkills = [];
+    // Check each repo and collect newly discovered skills grouped by repo
+    const newByRepo = [];
     for (const url of allUrls) {
         const skills = await checkRepo(url, cache);
-        for (const skill of skills) {
-            if (!cache.notified_skills.includes(skill)) {
-                newSkills.push(skill);
-                cache.notified_skills.push(skill);
-            }
+        const fresh = skills.filter((s) => !cache.notified_skills.includes(s));
+        if (fresh.length > 0) {
+            newByRepo.push({ url, skills: fresh });
+            cache.notified_skills.push(...fresh);
         }
     }
     cache.last_checked_at = new Date().toISOString();
     await writeCache(cache);
-    if (newSkills.length > 0) {
+    if (newByRepo.length > 0) {
+        const allNewSkills = newByRepo.flatMap((r) => r.skills);
+        const installCmds = newByRepo.map((r) => `npx skills add ${r.url}`).join(" | ");
+        const message = `Skills: ${allNewSkills.join(", ")} — ${installCmds}`;
         await client.tui.showToast({
             body: {
                 title: "New skills available",
-                message: `${newSkills.length} new skill${newSkills.length === 1 ? "" : "s"} available: ${newSkills.join(", ")}`,
+                message,
                 variant: "info",
             },
         }).catch(() => undefined);
