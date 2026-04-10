@@ -33,6 +33,7 @@ describe("getLocalSkills", () => {
         return Promise.reject(new Error("ENOENT"));
       },
       readFile: () => Promise.reject(new Error("ENOENT")),
+      rm: () => Promise.resolve(),
     }));
     const { getLocalSkills } = await import("./discovery.ts");
     const result = await getLocalSkills("/project", "project");
@@ -44,6 +45,7 @@ describe("getLocalSkills", () => {
     mock.module("node:fs/promises", () => ({
       readdir: () => Promise.reject(new Error("ENOENT")),
       readFile: () => Promise.reject(new Error("ENOENT")),
+      rm: () => Promise.resolve(),
     }));
     const { getLocalSkills } = await import("./discovery.ts");
     const result = await getLocalSkills("/nonexistent", "project");
@@ -63,6 +65,7 @@ describe("getLocalSkills", () => {
         return Promise.reject(new Error("ENOENT"));
       },
       readFile: () => Promise.reject(new Error("ENOENT")),
+      rm: () => Promise.resolve(),
     }));
     const { getLocalSkills } = await import("./discovery.ts");
     const result = await getLocalSkills("/project", "both");
@@ -75,6 +78,7 @@ describe("getLocalSkills", () => {
       readdir: () =>
         Promise.resolve([makeDirent("shared-skill", true)]),
       readFile: () => Promise.reject(new Error("ENOENT")),
+      rm: () => Promise.resolve(),
     }));
     const { getLocalSkills } = await import("./discovery.ts");
     const result = await getLocalSkills("/project", "both");
@@ -98,6 +102,7 @@ describe("discoverLocalRepos", () => {
         }
         return Promise.reject(new Error("ENOENT"));
       },
+      rm: () => Promise.resolve(),
     }));
     const { discoverLocalRepos } = await import("./discovery.ts");
     const result = await discoverLocalRepos("/project");
@@ -117,6 +122,7 @@ describe("discoverLocalRepos", () => {
         return Promise.reject(new Error("ENOENT"));
       },
       readFile: () => Promise.resolve(GIT_CONFIG_WITH_ORIGIN),
+      rm: () => Promise.resolve(),
     }));
     const { discoverLocalRepos } = await import("./discovery.ts");
     const result = await discoverLocalRepos("/project");
@@ -128,6 +134,7 @@ describe("discoverLocalRepos", () => {
     mock.module("node:fs/promises", () => ({
       readdir: () => Promise.reject(new Error("ENOENT")),
       readFile: () => Promise.reject(new Error("ENOENT")),
+      rm: () => Promise.resolve(),
     }));
     const { discoverLocalRepos } = await import("./discovery.ts");
     const result = await discoverLocalRepos("/nonexistent");
@@ -152,6 +159,7 @@ describe("discoverLocalRepos", () => {
         }
         return Promise.reject(new Error("ENOENT"));
       },
+      rm: () => Promise.resolve(),
     }));
     const { discoverLocalRepos } = await import("./discovery.ts");
     const result = await discoverLocalRepos("/project");
@@ -168,6 +176,7 @@ describe("discoverLocalRepos", () => {
         return Promise.reject(new Error("ENOENT"));
       },
       readFile: () => Promise.resolve(GIT_CONFIG_NO_ORIGIN),
+      rm: () => Promise.resolve(),
     }));
     const { discoverLocalRepos } = await import("./discovery.ts");
     const result = await discoverLocalRepos("/project");
