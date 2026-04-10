@@ -12,7 +12,6 @@ const CACHE_FILE = join(
 
 function defaults(): Cache {
   return {
-    last_checked_at: "1970-01-01T00:00:00.000Z",
     repos: {},
     notified_skills: [],
   };
@@ -39,12 +38,6 @@ export async function readCache(): Promise<Cache> {
 
   const p = parsed as Record<string, unknown>;
 
-  const last_checked_at =
-    typeof p["last_checked_at"] === "string" &&
-    !isNaN(Date.parse(p["last_checked_at"]))
-      ? p["last_checked_at"]
-      : defaults().last_checked_at;
-
   const repos: Cache["repos"] = {};
   if (typeof p["repos"] === "object" && p["repos"] !== null && !Array.isArray(p["repos"])) {
     for (const [url, entry] of Object.entries(
@@ -69,7 +62,7 @@ export async function readCache(): Promise<Cache> {
       )
     : [];
 
-  return { last_checked_at, repos, notified_skills };
+  return { repos, notified_skills };
 }
 
 export async function writeCache(cache: Cache): Promise<void> {

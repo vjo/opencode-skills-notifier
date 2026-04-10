@@ -3,7 +3,6 @@ import type { PluginConfig } from "./types.js";
 
 const DEFAULTS: PluginConfig = {
   enabled: true,
-  checkIntervalMinutes: 60,
   repositories: [],
   skillsScope: "both",
 };
@@ -13,12 +12,6 @@ export function readPluginConfig(options?: PluginOptions): PluginConfig {
 
   const enabled =
     typeof s["enabled"] === "boolean" ? s["enabled"] : DEFAULTS.enabled;
-
-  const checkIntervalMinutes =
-    typeof s["checkIntervalMinutes"] === "number" &&
-    s["checkIntervalMinutes"] >= 0
-      ? s["checkIntervalMinutes"]
-      : DEFAULTS.checkIntervalMinutes;
 
   const repositories = Array.isArray(s["repositories"])
     ? (s["repositories"] as unknown[]).filter(
@@ -33,5 +26,5 @@ export function readPluginConfig(options?: PluginOptions): PluginConfig {
       ? s["skillsScope"]
       : DEFAULTS.skillsScope;
 
-  return { enabled, checkIntervalMinutes, repositories, skillsScope };
+  return { enabled, repositories, skillsScope };
 }

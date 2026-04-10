@@ -70,7 +70,6 @@ describe("checkRepo", () => {
     const { checkRepo } = await import("./checker.ts");
 
     const cache: Cache = {
-      last_checked_at: "1970-01-01T00:00:00.000Z",
       repos: {
         "https://github.com/example/repo": {
           last_commit_hash: HASH_A,
@@ -117,7 +116,6 @@ describe("checkRepo", () => {
     const { checkRepo } = await import("./checker.ts");
 
     const cache: Cache = {
-      last_checked_at: "1970-01-01T00:00:00.000Z",
       repos: {
         "https://github.com/example/repo": {
           last_commit_hash: HASH_A,
@@ -154,7 +152,6 @@ describe("checkRepo", () => {
     const { checkRepo } = await import("./checker.ts");
 
     const cache: Cache = {
-      last_checked_at: "1970-01-01T00:00:00.000Z",
       repos: {},
       notified_skills: [],
     };
@@ -180,9 +177,8 @@ describe("spawnCheck", () => {
     }));
     mock.module("node:os", () => ({ tmpdir: () => "/tmp", homedir: () => "/home/test" }));
     mock.module("./config.ts", () => ({
-      readPluginConfig: async () => ({
+      readPluginConfig: () => ({
         enabled: false,
-        checkIntervalMinutes: 60,
         repositories: [],
         skillsScope: "both",
       }),
@@ -191,57 +187,6 @@ describe("spawnCheck", () => {
     let writeCacheCalled = false;
     mock.module("./cache.ts", () => ({
       readCache: async () => ({
-        last_checked_at: "1970-01-01T00:00:00.000Z",
-        repos: {},
-        notified_skills: [],
-      }),
-      writeCache: async () => {
-        writeCacheCalled = true;
-      },
-    }));
-    mock.module("./discovery.ts", () => ({
-      discoverLocalRepos: async () => [],
-      getLocalSkills: async () => new Set<string>(),
-    }));
-
-    const { spawnCheck } = await import("./checker.ts");
-    const showToast = mock(() => Promise.resolve({ data: true }));
-    const client = { tui: { showToast } } as any;
-
-    await spawnCheck(client, "/project");
-
-    expect(writeCacheCalled).toBe(false);
-    expect(showToast).not.toHaveBeenCalled();
-  });
-
-  it("skips when rate-limited", async () => {
-    mock.module("./shell.ts", () => ({
-      $: (_strings: TemplateStringsArray, ..._values: unknown[]) => makeCmd(),
-    }));
-    mock.module("node:fs/promises", () => ({
-      readFile: () => Promise.reject(new Error("ENOENT")),
-      writeFile: () => Promise.resolve(),
-      rename: () => Promise.resolve(),
-      mkdir: () => Promise.resolve(),
-      unlink: () => Promise.resolve(),
-      readdir: () => Promise.resolve([]),
-      rm: () => Promise.resolve(),
-    }));
-    mock.module("node:os", () => ({ tmpdir: () => "/tmp", homedir: () => "/home/test" }));
-    mock.module("./config.ts", () => ({
-      readPluginConfig: async () => ({
-        enabled: true,
-        checkIntervalMinutes: 60,
-        repositories: [],
-        skillsScope: "both",
-      }),
-    }));
-
-    let writeCacheCalled = false;
-    mock.module("./cache.ts", () => ({
-      readCache: async () => ({
-        // last_checked_at is very recent (now)
-        last_checked_at: new Date().toISOString(),
         repos: {},
         notified_skills: [],
       }),
@@ -279,9 +224,8 @@ describe("spawnCheck", () => {
     }));
     mock.module("node:os", () => ({ tmpdir: () => "/tmp", homedir: () => "/home/test" }));
     mock.module("./config.ts", () => ({
-      readPluginConfig: async () => ({
+      readPluginConfig: () => ({
         enabled: true,
-        checkIntervalMinutes: 0,
         repositories: [],
         skillsScope: "project",
       }),
@@ -290,7 +234,6 @@ describe("spawnCheck", () => {
     let savedCache: Cache | undefined;
     mock.module("./cache.ts", () => ({
       readCache: async (): Promise<Cache> => ({
-        last_checked_at: "1970-01-01T00:00:00.000Z",
         repos: {},
         notified_skills: ["installed-skill", "uninstalled-skill"],
       }),

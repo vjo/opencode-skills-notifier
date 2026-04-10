@@ -57,11 +57,6 @@ export async function spawnCheck(client, directory, options) {
     if (!config.enabled)
         return;
     const cache = await readCache();
-    // Rate-limit check
-    const lastChecked = new Date(cache.last_checked_at).getTime();
-    const intervalMs = config.checkIntervalMinutes * 60_000;
-    if (Date.now() - lastChecked < intervalMs)
-        return;
     // Merge and deduplicate repos from config and local discovery
     const discoveredRepos = await discoverLocalRepos(directory);
     const allUrls = [...new Set([...config.repositories, ...discoveredRepos])];
@@ -78,7 +73,6 @@ export async function spawnCheck(client, directory, options) {
             cache.notified_skills.push(...fresh);
         }
     }
-    cache.last_checked_at = new Date().toISOString();
     await writeCache(cache);
     if (newByRepo.length > 0) {
         const allNewSkills = newByRepo.flatMap((r) => r.skills);

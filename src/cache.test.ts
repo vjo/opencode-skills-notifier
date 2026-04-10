@@ -1,7 +1,6 @@
 import { describe, it, expect, mock } from "bun:test";
 
 const EMPTY_DEFAULT = {
-  last_checked_at: "1970-01-01T00:00:00.000Z",
   repos: {},
   notified_skills: [],
 };
@@ -53,7 +52,6 @@ describe("readCache", () => {
     }));
     const { readCache, writeCache } = await import("./cache.ts");
     const cache = {
-      last_checked_at: "2026-01-01T00:00:00.000Z",
       repos: {
         "https://github.com/example/repo": {
           last_commit_hash: "abc123",

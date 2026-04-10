@@ -1,16 +1,11 @@
 const DEFAULTS = {
     enabled: true,
-    checkIntervalMinutes: 60,
     repositories: [],
     skillsScope: "both",
 };
 export function readPluginConfig(options) {
     const s = options ?? {};
     const enabled = typeof s["enabled"] === "boolean" ? s["enabled"] : DEFAULTS.enabled;
-    const checkIntervalMinutes = typeof s["checkIntervalMinutes"] === "number" &&
-        s["checkIntervalMinutes"] >= 0
-        ? s["checkIntervalMinutes"]
-        : DEFAULTS.checkIntervalMinutes;
     const repositories = Array.isArray(s["repositories"])
         ? s["repositories"].filter((r) => typeof r === "string")
         : [...DEFAULTS.repositories];
@@ -19,5 +14,5 @@ export function readPluginConfig(options) {
         s["skillsScope"] === "both"
         ? s["skillsScope"]
         : DEFAULTS.skillsScope;
-    return { enabled, checkIntervalMinutes, repositories, skillsScope };
+    return { enabled, repositories, skillsScope };
 }

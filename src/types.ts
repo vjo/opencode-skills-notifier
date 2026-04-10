@@ -1,5 +1,4 @@
 export interface Cache {
-  last_checked_at: string
   repos: {
     [url: string]: {
       last_commit_hash: string
@@ -11,7 +10,6 @@ export interface Cache {
 
 export interface PluginConfig {
   enabled: boolean
-  checkIntervalMinutes: number
   repositories: string[]
   skillsScope: "global" | "project" | "both"
 }

@@ -4,17 +4,16 @@ An [OpenCode](https://opencode.ai) plugin that watches GitHub repositories for n
 
 ## How it works
 
-On every `session.created` event, the plugin:
+On every session start, the plugin:
 
-1. Reads configuration from `~/.config/opencode/opencode.json`
-2. Rate-limits itself — skips the check if it ran within `checkIntervalMinutes` (default: 60 min)
-3. Discovers repos implicitly from any locally cloned skills in `.agents/skills/`
-4. Merges them with the explicit `repositories` list from config
-5. For each repo, fetches the remote HEAD hash via `git ls-remote` and compares it to the cache
-6. If the hash changed (or is new), shallow-clones the repo and reads its top-level directories as skill names
-7. Filters out skills already notified or already installed locally
-8. Shows a toast with the new skill names and the install command(s)
-9. Persists updated hashes and notified skills to `~/.config/opencode/skills-notifier-cache.json`
+1. Reads configuration from plugin options in `~/.config/opencode/opencode.json`
+2. Discovers repos implicitly from any locally cloned skills in `.agents/skills/`
+3. Merges them with the explicit `repositories` list from config
+4. For each repo, fetches the remote HEAD hash via `git ls-remote` and compares it to the cache
+5. If the hash changed (or is new), shallow-clones the repo and reads its top-level directories as skill names
+6. Filters out skills already notified or already installed locally
+7. Shows a toast with the new skill names and the install command(s)
+8. Persists updated hashes and notified skills to `~/.config/opencode/skills-notifier-cache.json`
 
 The check runs fire-and-forget so it never blocks session startup.
 
@@ -58,7 +57,6 @@ All options live under the `"opencode-skills-notifier"` key in `~/.config/openco
   "plugins": ["..."],
   "opencode-skills-notifier": {
     "enabled": true,
-    "checkIntervalMinutes": 60,
     "repositories": [
       "https://github.com/example/my-skills"
     ],
@@ -70,7 +68,6 @@ All options live under the `"opencode-skills-notifier"` key in `~/.config/openco
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `boolean` | `true` | Master switch — set to `false` to disable the plugin entirely |
-| `checkIntervalMinutes` | `number` | `60` | Minimum minutes between remote checks |
 | `repositories` | `string[]` | `[]` | Explicit list of Git repo URLs to monitor |
 | `skillsScope` | `"global"` \| `"project"` \| `"both"` | `"both"` | Where to look for locally installed skills when filtering already-known ones |
 
@@ -87,7 +84,6 @@ The plugin stores state in `~/.config/opencode/skills-notifier-cache.json`:
 
 ```json
 {
-  "last_checked_at": "2026-04-10T12:00:00.000Z",
   "repos": {
     "https://github.com/example/my-skills": {
       "last_commit_hash": "abc123...",
@@ -121,10 +117,10 @@ bun test
 ```
 src/
   index.ts        Plugin entry point — registers the session.created hook
-  checker.ts      Core logic: rate-limit, repo scanning, toast dispatch
+  checker.ts      Core logic: repo scanning and toast dispatch
   discovery.ts    Local repo + skills discovery from .agents/skills/
   cache.ts        Read/write ~/.config/opencode/skills-notifier-cache.json
-  config.ts       Read plugin config from ~/.config/opencode/opencode.json
+  config.ts       Parse plugin config from PluginOptions
   types.ts        Shared TypeScript interfaces (Cache, PluginConfig)
   shell.ts        Thin re-export of Bun's $ shell helper
   *.test.ts       Unit tests (bun:test)
