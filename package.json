@@ -1,6 +1,6 @@
 {
   "name": "opencode-skills-notifier",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "OpenCode plugin that watches git repositories for new agent skills and notifies users when new skills are available to install",
   "type": "module",
   "main": "dist/index.js",

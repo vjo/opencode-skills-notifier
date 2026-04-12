@@ -2,21 +2,6 @@
 
 An [OpenCode](https://opencode.ai) plugin that watches GitHub repositories for new agent skills and notifies you via an in-editor toast when new skills are available to install.
 
-## How it works
-
-On every session start, the plugin:
-
-1. Reads configuration from plugin options in `~/.config/opencode/opencode.json`
-2. Discovers repos implicitly from any locally cloned skills in `.agents/skills/`
-3. Merges them with the explicit `repositories` list from config
-4. For each repo, fetches the remote HEAD hash via `git ls-remote` and compares it to the cache
-5. If the hash changed (or is new), shallow-clones the repo and reads its top-level directories as skill names
-6. Filters out skills already notified or already installed locally
-7. Shows a toast with the new skill names and the install command(s)
-8. Persists updated hashes and notified skills to `~/.config/opencode/skills-notifier-cache.json`
-
-The check runs fire-and-forget so it never blocks session startup.
-
 ## Requirements
 
 - [OpenCode](https://opencode.ai) with plugin support
@@ -28,7 +13,7 @@ Add the plugin to `~/.config/opencode/config.json` (create it if it doesn't exis
 
 ```json
 {
-  "plugin": ["opencode-skills-notifier@git+https://github.com/vjo/opencode-skills-notifier.git"]
+  "plugin": ["opencode-skills-notifier"]
 }
 ```
 
@@ -38,10 +23,10 @@ To pass configuration options alongside the plugin:
 {
   "plugin": [
     [
-      "opencode-skills-notifier@git+https://github.com/vjo/opencode-skills-notifier.git",
+      "opencode-skills-notifier",
       {
         "enabled": true,
-        "repositories": ["https://github.com/your-org/your-skills-repo"],
+        "repositories": ["git@github.com:your-org/your-skills-repo.git"],
         "skillsScope": "both"
       }
     ]
@@ -53,30 +38,16 @@ OpenCode will automatically fetch and install the package on next startup.
 
 ## Configuration
 
-All options live under the `"opencode-skills-notifier"` key in `~/.config/opencode/opencode.json`.
-
-```json
-{
-  "plugins": ["..."],
-  "opencode-skills-notifier": {
-    "enabled": true,
-    "repositories": [
-      "https://github.com/example/my-skills"
-    ],
-    "skillsScope": "both"
-  }
-}
-```
-
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `enabled` | `boolean` | `true` | Master switch — set to `false` to disable the plugin entirely |
-| `repositories` | `string[]` | `[]` | Explicit list of Git repo URLs to monitor |
-| `skillsScope` | `"global"` \| `"project"` \| `"both"` | `"both"` | Where to look for locally installed skills when filtering already-known ones |
+| Option         | Type                                  | Default  | Description                                                                  |
+| -------------- | ------------------------------------- | -------- | ---------------------------------------------------------------------------- |
+| `enabled`      | `boolean`                             | `true`   | Master switch — set to `false` to disable the plugin entirely                |
+| `repositories` | `string[]`                            | `[]`     | Explicit list of Git repo URLs to monitor                                    |
+| `skillsScope`  | `"global"` \| `"project"` \| `"both"` | `"both"` | Where to look for locally installed skills when filtering already-known ones |
 
 **Implicit repo discovery**: even without listing repos explicitly, the plugin reads the `.git/config` of every directory inside `.agents/skills/` and checks the `origin` remote — so repos you've already cloned are monitored automatically.
 
 **Skills scope**:
+
 - `"global"` — checks `~/.agents/skills/`
 - `"project"` — checks `<project>/.agents/skills/`
 - `"both"` — checks both (default)
@@ -88,7 +59,7 @@ The plugin stores state in `~/.config/opencode/skills-notifier-cache.json`:
 ```json
 {
   "repos": {
-    "https://github.com/example/my-skills": {
+    "git@github.com:example/my-skills.git": {
       "last_commit_hash": "abc123...",
       "known_skills": ["skill-a", "skill-b"]
     }
@@ -138,26 +109,20 @@ bun test
 
 Tests use `bun:test` with module mocking. Each source file has a co-located `*.test.ts`.
 
-### Smoke test with a local repo
+## How it works
 
-```bash
-# 1. Create a local skills repo
-mkdir -p /tmp/test-skills-repo && cd /tmp/test-skills-repo
-git init && git checkout -b main
-mkdir skill-alpha skill-beta
-echo "# Alpha" > skill-alpha/README.md
-echo "# Beta" > skill-beta/README.md
-git add . && git commit -m "add test skills"
+On every session start, the plugin:
 
-# 2. Point the plugin at it
-# In ~/.config/opencode/opencode.json:
-# "repositories": ["file:///tmp/test-skills-repo"]
+1. Reads configuration from plugin options in `~/.config/opencode/opencode.json`
+2. Discovers repos implicitly from any locally cloned skills in `.agents/skills/`
+3. Merges them with the explicit `repositories` list from config
+4. For each repo, fetches the remote HEAD hash via `git ls-remote` and compares it to the cache
+5. If the hash changed (or is new), shallow-clones the repo and reads its top-level directories as skill names
+6. Filters out skills already notified or already installed locally
+7. Shows a toast with the new skill names and the install command(s)
+8. Persists updated hashes and notified skills to `~/.config/opencode/skills-notifier-cache.json`
 
-# 3. Delete the cache so the check fires immediately
-rm -f ~/.config/opencode/skills-notifier-cache.json
-
-# 4. Open a new OpenCode session — the toast should appear
-```
+The check runs fire-and-forget so it never blocks session startup.
 
 ## License
 
